@@ -2,14 +2,12 @@
 const ethers = require("ethers");
 // import { readFileSync } from "fs-extra";
 const fs = require("fs-extra");
+require("dotenv").config();
 
 const main = async () => {
   console.log("Happy birthday vinay");
-  const provider = new ethers.JsonRpcProvider("http://127.0.0.1:7545");
-  const wallet = new ethers.Wallet(
-    "0xcb612aab5aa9282baa33b448e89a8903bbf2c94ffd2f9e6187c75370ec7a82d3",
-    provider
-  );
+  const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+  const wallet = new ethers.Wallet(process.env.Private_Key, provider);
 
   const abi = fs.readFileSync("./structure_sol_Structure.abi", "utf8");
   const binary = fs.readFileSync("./structure_sol_Structure.bin", "utf8");
@@ -18,13 +16,26 @@ const main = async () => {
 
   console.log("Deploying ... please wait");
   const contract = await contractFactroy.deploy();
-  console.log(contract);
+  await contract.deploymentTransaction().wait(1);
+
+  const currentFavouriteNumber = await contract.retrive();
+
+  console.log(`Current fav number : ${currentFavouriteNumber.toString()}`);
+  const transactionResponse = await contract.store(10); // wait(1) means that we have to wait for the 1 block of time
+  // above transactionResponse stores the value of the favourite number
+  const transactionRecipt = await transactionResponse.wait(1); // here we are waiting for the transaction to be mined
+  const updatedFavouriteNumber = await contract.retrive();
+  console.log(`Updated fav number : ${updatedFavouriteNumber.toString()}`);
+
+  // console.log();
+
+  // console.log(contract);
   // const nonce = await wallet.getTransactionCount(); it is used to get the current nonce of the server
 
   // const tx = {
   //   noonce: 0,
   //   gasPrice: 20000000000,
-  //   gasLimit: 100000000,
+  //   gasLimit: 6721975,
   //   to: null,
   //   value: 0,
   //
